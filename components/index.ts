@@ -1,5 +1,5 @@
-export { Navbar } from './Navbar';
+export { default as Navbar } from './Navbar';
 export { ThemeProvider, useTheme } from './ThemeProvider';
-export { ParticleBackground } from './ParticleBackground';
-export { SoundButton } from './SoundButton';
-export { Section } from './Section';
+export { default as ParticleBackground } from './ParticleBackground';
+export { default as SoundButton } from './SoundButton';
+export { default as Section } from './Section';

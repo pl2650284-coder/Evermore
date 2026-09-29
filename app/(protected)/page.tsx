@@ -2,18 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Calendar, MapPin, Camera, MessageSquare } from 'lucide-react';
+import { Heart, Calendar, MapPin, Camera } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import ParticleBackground from '@/components/ParticleBackground';
 import SoundButton from '@/components/SoundButton';
 import Section from '@/components/Section';
 import { useCouple } from '@/lib/couple';
-import { isSupabaseConfigured } from '@/lib/supabase';
 import { calculateDaysTogether } from '@/lib/utils';
 
 export default function Home() {
   const { couple, loading } = useCouple();
-  const configured = isSupabaseConfigured();
 
   // 默认值
   const partner1Name = couple?.partner1_name || '小明';
@@ -32,7 +30,6 @@ export default function Home() {
     { icon: Calendar, label: '一起走过', value: daysTogether.toString() },
     { icon: MapPin, label: '去过城市', value: '0' },
     { icon: Camera, label: '照片回忆', value: '0' },
-    { icon: MessageSquare, label: '聊天消息', value: '0' },
   ];
 
   return (
@@ -95,27 +92,12 @@ export default function Home() {
             </p>
           </motion.div>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <div className="w-6 h-10 border-2 border-gray-400 dark:border-gray-600 rounded-full flex justify-center p-2">
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-1 h-2 bg-gray-400 dark:bg-gray-600 rounded-full"
-            />
-          </div>
-        </motion.div>
       </section>
 
       {/* Stats Section */}
       <Section>
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             {STATS.map((stat, index) => (
               <motion.div
                 key={stat.label}

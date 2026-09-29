@@ -1,31 +1,29 @@
 'use client';
 
-import { supabase, isSupabaseConfigured } from './supabase';
+import { API_BASE_URL } from './api';
 
-// 上传文件到 Supabase Storage
+// 上传文件到服务器
 export async function uploadFile(file: File, folder: string = 'uploads'): Promise<string> {
-  if (!isSupabaseConfigured() || !supabase) {
-    throw new Error('Supabase not configured');
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('folder', folder);
+
+  const token = localStorage.getItem('token');
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // 生成唯一文件名
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-  const filePath = `${folder}/${fileName}`;
+  const response = await fetch(`${API_BASE_URL}/upload`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
 
-  // 上传文件
-  const { error: uploadError } = await supabase.storage
-    .from('photos')
-    .upload(filePath, file);
-
-  if (uploadError) {
-    throw uploadError;
+  if (!response.ok) {
+    throw new Error('文件上传失败');
   }
 
-  // 获取公开 URL
-  const { data } = supabase.storage
-    .from('photos')
-    .getPublicUrl(filePath);
-
-  return data.publicUrl;
+  const result = await response.json();
+  return result.url;
 }

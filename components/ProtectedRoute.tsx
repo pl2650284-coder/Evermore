@@ -4,28 +4,39 @@ import { useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useCouple } from '@/lib/couple';
 import { useRouter, usePathname } from 'next/navigation';
-import { SupabaseSetup } from './SupabaseSetup';
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
 };
 
-const publicPaths = ['/login', '/register'];
+const publicPaths = ['/login', '/register', '/admin/login'];
+const adminPaths = ['/admin/dashboard', '/admin/users', '/admin/couples'];
 const onboardingPath = '/onboarding';
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading: authLoading, isConfigured } = useAuth();
+  const { user, isAdmin, isLoading: authLoading } = useAuth();
   const { couple, loading: coupleLoading } = useCouple();
   const router = useRouter();
   const pathname = usePathname();
 
-  // 如果 Supabase 未配置，显示设置提示
-  if (!isConfigured) {
-    return <SupabaseSetup />;
-  }
-
   useEffect(() => {
-    if (authLoading || coupleLoading) return;
+    if (authLoading) return;
+
+    // 管理员路由逻辑
+    if (pathname.startsWith('/admin')) {
+      if (!isAdmin && pathname !== '/admin/login') {
+        router.push('/admin/login');
+        return;
+      }
+      if (isAdmin && pathname === '/admin/login') {
+        router.push('/admin/dashboard');
+        return;
+      }
+      return;
+    }
+
+    // 普通用户路由逻辑
+    if (coupleLoading) return;
 
     // 如果未登录，且不在公开页面，跳转到登录页
     if (!user && !publicPaths.includes(pathname)) {
@@ -34,7 +45,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
 
     // 如果已登录，但在登录/注册页，跳转到首页或onboarding
-    if (user && publicPaths.includes(pathname)) {
+    if (user && publicPaths.includes(pathname) && !pathname.startsWith('/admin')) {
       if (!couple) {
         router.push(onboardingPath);
       } else {
@@ -54,10 +65,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       router.push('/');
       return;
     }
-  }, [user, couple, authLoading, coupleLoading, pathname, router]);
+  }, [user, isAdmin, couple, authLoading, coupleLoading, pathname, router]);
 
   // 加载中显示loading状态
-  if (authLoading || coupleLoading) {
+  if (authLoading || (pathname.startsWith('/admin') ? false : coupleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">

@@ -14,6 +14,9 @@ export default function ParticleBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const currentCanvas = canvas;
+    const currentCtx = ctx;
+
     let animationId: number;
     const particles: Particle[] = [];
     const particleCount = 50;
@@ -26,8 +29,8 @@ export default function ParticleBackground() {
       speedY: number;
 
       constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
+        this.x = Math.random() * currentCanvas.width;
+        this.y = Math.random() * currentCanvas.height;
         this.size = Math.random() * 2 + 1;
         this.speedX = Math.random() * 0.5 - 0.25;
         this.speedY = Math.random() * 0.5 - 0.25;
@@ -37,17 +40,17 @@ export default function ParticleBackground() {
         this.x += this.speedX;
         this.y += this.speedY;
 
-        if (this.x > canvas.width) this.x = 0;
-        if (this.x < 0) this.x = canvas.width;
-        if (this.y > canvas.height) this.y = 0;
-        if (this.y < 0) this.y = canvas.height;
+        if (this.x > currentCanvas.width) this.x = 0;
+        if (this.x < 0) this.x = currentCanvas.width;
+        if (this.y > currentCanvas.height) this.y = 0;
+        if (this.y < 0) this.y = currentCanvas.height;
       }
 
       draw() {
-        ctx.fillStyle = theme === 'light' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
+        currentCtx.fillStyle = theme === 'light' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)';
+        currentCtx.beginPath();
+        currentCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        currentCtx.fill();
       }
     }
 
@@ -66,21 +69,21 @@ export default function ParticleBackground() {
 
           if (distance < 100) {
             const opacity = (1 - distance / 100) * 0.2;
-            ctx.strokeStyle = theme === 'light'
+            currentCtx.strokeStyle = theme === 'light'
               ? `rgba(0, 0, 0, ${opacity})`
               : `rgba(255, 255, 255, ${opacity})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(particles[a].x, particles[a].y);
-            ctx.lineTo(particles[b].x, particles[b].y);
-            ctx.stroke();
+            currentCtx.lineWidth = 1;
+            currentCtx.beginPath();
+            currentCtx.moveTo(particles[a].x, particles[a].y);
+            currentCtx.lineTo(particles[b].x, particles[b].y);
+            currentCtx.stroke();
           }
         }
       }
     };
 
     const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
 
       for (const particle of particles) {
         particle.update();
@@ -92,8 +95,8 @@ export default function ParticleBackground() {
     };
 
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      currentCanvas.width = window.innerWidth;
+      currentCanvas.height = window.innerHeight;
     };
 
     resize();

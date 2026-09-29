@@ -13,7 +13,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signUp } = useAuth();
+  const { register } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,14 +32,14 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const result = await signUp(email, password);
-    if (!result.success) {
-      setError(result.error?.message || '注册失败，请重试');
-    } else {
-      // 注册成功，跳转到 onboarding
+    try {
+      await register(email, password, email.split('@')[0]); // 用邮箱前缀作为默认用户名
       router.push('/onboarding');
+    } catch (err: any) {
+      setError(err.message || '注册失败，请重试');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

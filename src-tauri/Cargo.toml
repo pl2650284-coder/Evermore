@@ -1,0 +1,21 @@
+[package]
+name = "love-museum"
+version = "1.0.0"
+description = "A private desktop space for shared memories"
+authors = ["Love Museum"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2.5.0", features = [] }
+
+[dependencies]
+anyhow = "1.0"
+tauri = { version = "2.12.0", features = [] }
+tauri-plugin-single-instance = "2.5.0"
+url = "2.5.7"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_UI_WindowsAndMessaging"] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]

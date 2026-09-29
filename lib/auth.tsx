@@ -1,104 +1,137 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase, isSupabaseConfigured } from './supabase';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import { authApi, AuthResponse } from './api';
 
-type AuthContextType = {
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar_url?: string;
+}
+
+interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  loading: boolean;
-  isConfigured: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: any | null; success: boolean }>;
-  signIn: (email: string, password: string) => Promise<{ error: any | null; success: boolean }>;
-  signOut: () => Promise<void>;
-};
+  isAdmin: boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  adminLogin: (username: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => void;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
-  const isConfigured = isSupabaseConfigured();
-
+  // 初始化时检查本地存储的登录态
   useEffect(() => {
-    if (!isConfigured) {
-      setLoading(false);
-      return;
-    }
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    const savedIsAdmin = localStorage.getItem('isAdmin');
 
-    // 获取当前会话
-    const initAuth = async () => {
+    if (token && savedUser) {
       try {
-        const { data: { session } } = await supabase!.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-      } finally {
-        setLoading(false);
+        setUser(JSON.parse(savedUser));
+        setIsAdmin(savedIsAdmin === 'true');
+      } catch (e) {
+        console.error('解析用户信息失败:', e);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('isAdmin');
       }
-    };
+    }
+    setIsLoading(false);
+  }, []);
 
-    initAuth();
-
-    // 监听认证状态变化
-    const { data: { subscription } } = supabase!.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, [isConfigured]);
-
-  const signUp = async (email: string, password: string) => {
-    if (!isConfigured) return { error: new Error('Supabase not configured'), success: false };
+  // 用户登录
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
     try {
-      const { error } = await supabase!.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: undefined,
-          data: {
-            email_confirmed: true
-          }
-        }
-      });
-      if (error) throw error;
-      return { error: null, success: true };
-    } catch (error: any) {
-      // 如果是频率限制，尝试直接登录（假设账号已存在）
-      if (error.message?.includes('rate limit')) {
-        const { error: signInError } = await supabase!.auth.signInWithPassword({ email, password });
-        if (!signInError) {
-          return { error: null, success: true };
-        }
-      }
-      return { error, success: false };
+      const result = await authApi.login({ email, password });
+
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+      localStorage.setItem('isAdmin', 'false');
+
+      setUser(result.user);
+      setIsAdmin(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const signIn = async (email: string, password: string) => {
-    if (!isConfigured) return { error: new Error('Supabase not configured'), success: false };
+  // 管理员登录
+  const adminLogin = async (username: string, password: string) => {
+    setIsLoading(true);
     try {
-      const { error } = await supabase!.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      return { error: null, success: true };
-    } catch (error) {
-      return { error, success: false };
+      // 硬编码管理员账号作为 fallback
+      if (username === 'Ghjxxj' && password === '123456') {
+        const adminUser = {
+          id: 'admin-001',
+          email: 'admin@lovemuseum.com',
+          name: '管理员',
+        };
+        const token = 'admin-token-' + Date.now();
+
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(adminUser));
+        localStorage.setItem('isAdmin', 'true');
+
+        setUser(adminUser);
+        setIsAdmin(true);
+      } else {
+        throw new Error('管理员账号或密码错误');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const signOut = async () => {
-    if (!isConfigured) return;
-    await supabase!.auth.signOut();
+  // 注册
+  const register = async (email: string, password: string, name: string) => {
+    setIsLoading(true);
+    try {
+      const result = await authApi.register({ email, password, name });
+
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+      localStorage.setItem('isAdmin', 'false');
+
+      setUser(result.user);
+      setIsAdmin(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 登出
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isAdmin');
+    setUser(null);
+    setIsAdmin(false);
+    router.push('/login');
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isConfigured, signUp, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAdmin,
+        isLoading,
+        login,
+        adminLogin,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -106,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

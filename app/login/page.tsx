@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Heart, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Heart, Mail, Lock, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useCouple } from '@/lib/couple';
 
@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signIn } = useAuth();
+  const { login } = useAuth();
   const { couple } = useCouple();
   const router = useRouter();
 
@@ -22,21 +22,17 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    console.log('尝试登录:', email);
-    const result = await signIn(email, password);
-    console.log('登录结果:', result);
-
-    if (!result.success) {
-      const errorMsg = result.error?.message || '登录失败，请重试';
-      console.error('登录错误:', result.error);
-      setError(errorMsg);
-    } else {
-      // 登录成功，等待一下让 couple 状态更新，然后跳转
+    try {
+      await login(email, password);
+      // 登录成功，跳转
       setTimeout(() => {
         router.push(couple ? '/' : '/onboarding');
       }, 100);
+    } catch (err: any) {
+      setError(err.message || '登录失败，请重试');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -111,6 +107,16 @@ export default function LoginPage() {
             立即注册
           </Link>
         </p>
+
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <Link
+            href="/admin/login"
+            className="flex items-center justify-center gap-2 w-full py-3 text-gray-600 dark:text-gray-400 hover:text-accent transition-colors"
+          >
+            <Shield className="w-4 h-4" />
+            <span>管理员登录</span>
+          </Link>
+        </div>
       </motion.div>
     </div>
   );

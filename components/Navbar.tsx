@@ -36,7 +36,6 @@ const memorialDropdownItems = [
 
 // 数据中心下拉菜单
 const dataDropdownItems = [
-  { href: '/chat', label: '聊天分析' },
   { href: '/achievements', label: '成就系统' },
   { href: '/wishlist', label: '愿望清单' },
   { href: '/capsules', label: '时光胶囊' },
@@ -51,9 +50,10 @@ export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const { couple } = useCouple();
   const pathname = usePathname();
+  const isAdminPage = pathname.startsWith('/admin');
 
   // 默认情侣名称
   const partner1Name = couple?.partner1_name || '小明';
@@ -61,12 +61,19 @@ export default function Navbar() {
 
   // 监听滚动
   useEffect(() => {
+    if (isAdminPage) return;
+
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isAdminPage]);
+
+  // 管理员页面不显示导航栏
+  if (isAdminPage) {
+    return null;
+  }
 
   // 检查是否是当前页面或子页面
   const isActive = (href: string) => {
@@ -84,8 +91,8 @@ export default function Navbar() {
     setOpenDropdown(openDropdown === name ? null : name);
   };
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleLogout = () => {
+    logout();
     setShowUserMenu(false);
   };
 
@@ -163,6 +170,23 @@ export default function Navbar() {
             </button>
 
             {/* 用户菜单 */}
+            {!user && (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-accent transition-colors"
+                >
+                  登录
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-4 py-2 text-sm font-medium bg-accent text-white rounded-full hover:bg-accent/90 transition-colors"
+                >
+                  注册
+                </Link>
+              </div>
+            )}
+
             {user && (
               <div className="relative">
                 <button
@@ -187,7 +211,7 @@ export default function Navbar() {
                           <p className="text-sm font-medium">{user.email}</p>
                         </div>
                         <button
-                          onClick={handleSignOut}
+                          onClick={handleLogout}
                           className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                         >
                           <LogOut className="w-4 h-4" />
@@ -280,11 +304,31 @@ export default function Navbar() {
                 </MobileNavLink>
               </div>
 
+              {/* 用户操作 */}
+              {!user && (
+                <div className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-2">
+                  <Link
+                    href="/login"
+                    className="block w-full px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    登录
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="block w-full px-4 py-3 text-center font-medium bg-accent text-white rounded-xl hover:bg-accent/90 transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    注册
+                  </Link>
+                </div>
+              )}
+
               {/* 用户登出 */}
               {user && (
                 <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
                   <button
-                    onClick={handleSignOut}
+                    onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                   >
                     <LogOut className="w-5 h-5" />

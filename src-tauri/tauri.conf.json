@@ -1,0 +1,41 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Love Museum",
+  "version": "1.0.0",
+  "identifier": "com.lovemuseum.desktop",
+  "build": {
+    "beforeDevCommand": "node scripts/tauri-dev.js",
+    "beforeBuildCommand": "node scripts/prepare-tauri.js",
+    "devUrl": "http://127.0.0.1:3000",
+    "frontendDist": "../out"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "nsis",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "resources/backend",
+      "resources/out",
+      "resources/node-runtime*"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": true,
+        "startMenuFolder": "Love Museum"
+      }
+    }
+  }
+}

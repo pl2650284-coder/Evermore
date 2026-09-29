@@ -1,35 +1,49 @@
 {
   "name": "love-museum",
   "version": "1.0.0",
+  "description": "A private desktop space for shared memories",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:desktop": "node scripts/build-desktop.js",
+    "desktop": "tauri dev",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "test:desktop-api": "node --test backend/test/sqlite.test.js",
+    "dist:win": "tauri build --target x86_64-pc-windows-msvc --bundles nsis"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.4",
-    "echarts": "^5.5.1",
-    "echarts-for-react": "^3.0.2",
-    "framer-motion": "^11.11.11",
-    "lucide-react": "^0.454.0",
-    "next": "14.2.15",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-icons": "^5.3.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.5.4"
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "^2.45.4",
     "@types/node": "^22.7.5",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
-    "eslint": "^9.12.0",
+    "clsx": "^2.1.1",
+    "echarts": "^5.5.1",
+    "echarts-for-react": "^3.0.2",
+    "eslint": "^8.57.1",
     "eslint-config-next": "14.2.15",
+    "framer-motion": "^11.11.11",
+    "lucide-react": "^0.454.0",
+    "next": "14.2.15",
     "postcss": "^8.4.47",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.3.0",
     "tailwindcss": "^3.4.14",
-    "typescript": "^5.6.3"
+    "tailwind-merge": "^2.5.4",
+    "typescript": "^5.6.3",
+    "@tauri-apps/cli": "^2.12.0"
   }
 }
