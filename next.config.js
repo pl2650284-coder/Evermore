@@ -3,6 +3,7 @@ const isDesktopBuild = process.env.DESKTOP_BUILD === 'true';
 
 const nextConfig = {
   reactStrictMode: true,
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   ...(isDesktopBuild ? { output: 'export', trailingSlash: true } : {}),
   images: {
     domains: ['localhost', 'images.unsplash.com', 'source.unsplash.com'],

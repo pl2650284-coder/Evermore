@@ -13,7 +13,6 @@ import {
   Route,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import Section from '@/components/Section';
 import { PROVINCES, getCitiesByProvince, getDistrictsByCity, usePhotos, useTimelineEvents } from '@/lib/data';
 
 type RecordKind = 'event' | 'photo';
@@ -272,27 +271,27 @@ export default function MapPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="pb-16 pt-24">
-        <Section className="!py-10">
-          <div className="mx-auto max-w-7xl">
+      <div className="page-shell">
+        <main className="page-container">
+          <div>
             <motion.header
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end"
+              className="page-header"
             >
               <div>
                 <div className="mb-3 flex items-center gap-2 text-sm font-medium text-accent">
                   <Heart className="h-4 w-4" fill="currentColor" />
                   OUR JOURNEY
                 </div>
-                <h1 className="mb-3 text-4xl font-bold sm:text-5xl">恋爱地图</h1>
-                <p className="text-gray-600 dark:text-gray-400">一起走过的地方，正在变成我们的版图</p>
+                <h1 className="page-title">恋爱地图</h1>
+                <p className="page-description">一起走过的地方，正在变成我们的版图</p>
               </div>
               {selectedProvince && (
                 <button
                   type="button"
                   onClick={() => setSelectedProvince(null)}
-                  className="self-start rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-gray-400 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:text-white md:self-auto"
+                  className="button-secondary self-start"
                 >
                   查看全部足迹
                 </button>
@@ -334,7 +333,7 @@ export default function MapPage() {
               >
                 <div className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4 dark:border-gray-800 dark:bg-gray-900">
                   <div>
-                    <h2 className="font-semibold">{selectedProvince || '中国足迹'}</h2>
+                    <h2 className="section-title">{selectedProvince || '中国足迹'}</h2>
                     <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                       {selectedProvince
                         ? `${selectedStat?.total || 0} 条记录 · ${selectedStat?.cities.size || 0} 座城市`
@@ -396,7 +395,7 @@ export default function MapPage() {
                 <div className="border-b border-gray-200 p-5 dark:border-gray-800">
                   <div className="mb-4 flex items-center justify-between">
                     <div>
-                      <h2 className="font-semibold">{selectedProvince || '全部旅途'}</h2>
+                      <h2 className="section-title">{selectedProvince || '全部旅途'}</h2>
                       <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{displayedRecords.length} 条可查看记录</p>
                     </div>
                     <Route className="h-5 w-5 text-gray-400" />
@@ -474,7 +473,7 @@ export default function MapPage() {
               </motion.aside>
             </div>
           </div>
-        </Section>
+        </main>
       </div>
     </div>
   );

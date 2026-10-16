@@ -56,7 +56,7 @@ function stageResources() {
   for (const file of ['server.js', 'desktop-server.js', 'utils.js', 'package.json']) {
     copy(path.join(backendRoot, file), path.join(stagedBackend, file));
   }
-  for (const directory of ['middleware', 'routes']) {
+  for (const directory of ['middleware', 'routes', 'storage', 'sync']) {
     copy(path.join(backendRoot, directory), path.join(stagedBackend, directory));
   }
   fs.mkdirSync(path.join(stagedBackend, 'db'), { recursive: true });

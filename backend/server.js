@@ -23,9 +23,14 @@ const lettersRoutes = require('./routes/letters');
 const giftsRoutes = require('./routes/gifts');
 const ticketsRoutes = require('./routes/tickets');
 const uploadRoutes = require('./routes/upload');
+const reportRoutes = require('./routes/report');
+const syncRoutes = require('./routes/sync');
+const mediaRoutes = require('./routes/media');
+const musicRoutes = require('./routes/music');
 
 function createApp({ frontendDir } = {}) {
   const app = express();
+  app.locals.enableS3Sync = process.env.ENABLE_S3_SYNC === 'true';
 
   if (frontendDir) {
     app.use((req, res, next) => {
@@ -58,6 +63,10 @@ function createApp({ frontendDir } = {}) {
   app.use('/api/gifts', giftsRoutes);
   app.use('/api/tickets', ticketsRoutes);
   app.use('/api/upload', uploadRoutes);
+  app.use('/api/media', mediaRoutes);
+  app.use('/api/music', musicRoutes);
+  app.use('/api/report', reportRoutes);
+  app.use('/api/sync', syncRoutes);
 
   if (frontendDir) {
     app.use(express.static(frontendDir));
@@ -102,7 +111,7 @@ async function startServer(options = {}) {
       const url = `http://${host}:${actualPort}`;
 
       process.env.PORT = String(actualPort);
-      console.log(`Love Museum server running at ${url}`);
+      console.log(`Evermore server running at ${url}`);
       resolve({ app, server, port: actualPort, url });
     });
   });

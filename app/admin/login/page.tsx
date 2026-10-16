@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
             <Shield className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold mb-2 text-white">管理员登录</h1>
-          <p className="text-gray-400">Love Museum 管理后台</p>
+          <p className="text-gray-400">Evermore 管理后台</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -98,11 +98,11 @@ export default function AdminLoginPage() {
 
         <div className="mt-8 text-center">
           <Link
-            href="/login"
+            href="/"
             className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            返回用户登录
+            返回首页
           </Link>
         </div>
 

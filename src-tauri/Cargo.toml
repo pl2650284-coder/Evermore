@@ -1,8 +1,8 @@
 [package]
-name = "love-museum"
+name = "evermore"
 version = "1.0.0"
 description = "A private desktop space for shared memories"
-authors = ["Love Museum"]
+authors = ["Evermore"]
 edition = "2021"
 
 [build-dependencies]
@@ -10,8 +10,11 @@ tauri-build = { version = "2.5.0", features = [] }
 
 [dependencies]
 anyhow = "1.0"
+serde_json = "1.0.154"
 tauri = { version = "2.12.0", features = [] }
 tauri-plugin-single-instance = "2.5.0"
+tauri-plugin-updater = "2"
+tauri-plugin-dialog = "2"
 url = "2.5.7"
 
 [target.'cfg(windows)'.dependencies]

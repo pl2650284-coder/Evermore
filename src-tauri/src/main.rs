@@ -10,10 +10,7 @@ use std::{
     time::Duration,
 };
 
-use tauri::{
-    utils::config::Color, webview::PageLoadEvent, AppHandle, Manager, RunEvent, WebviewUrl,
-    WebviewWindowBuilder,
-};
+use tauri::{utils::config::Color, AppHandle, Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
 use url::Url;
 
 const DEV_URL: &str = "http://127.0.0.1:3000";
@@ -26,7 +23,7 @@ struct BackendProcess(Mutex<Option<Child>>);
 fn show_startup_error(message: &str) {
     use windows_sys::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_ICONERROR, MB_OK};
 
-    let title: Vec<u16> = "Love Museum".encode_utf16().chain([0]).collect();
+    let title: Vec<u16> = "Evermore".encode_utf16().chain([0]).collect();
     let message: Vec<u16> = message.encode_utf16().chain([0]).collect();
     unsafe {
         MessageBoxW(
@@ -191,17 +188,12 @@ fn create_window(app: &AppHandle, url: Url) -> tauri::Result<()> {
         .on_navigation(move |target| {
             target.scheme() == "about" || target.origin() == allowed_origin
         })
-        .on_page_load(|window, payload| {
-            if payload.event() == PageLoadEvent::Finished {
-                let _ = window.show();
-            }
-        })
-        .title("Love Museum")
+        .title("Evermore")
         .inner_size(1440.0, 900.0)
         .min_inner_size(960.0, 640.0)
         .background_color(Color(255, 247, 251, 255))
         .resizable(true)
-        .visible(false)
+        .visible(true)
         .center()
         .build()?;
     Ok(())
@@ -211,10 +203,13 @@ fn run() -> tauri::Result<()> {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
                 let _ = window.unminimize();
                 let _ = window.set_focus();
             }
         }))
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let backend = BackendProcess(Mutex::new(None));
             app.manage(backend);
@@ -223,7 +218,7 @@ fn run() -> tauri::Result<()> {
                 create_window(app.handle(), Url::parse(DEV_URL).expect("valid dev URL"))?;
             } else {
                 let (child, url) = start_backend(app.handle()).map_err(|error| {
-                    show_startup_error(&format!("Love Museum could not start.\n\n{error}"));
+                    show_startup_error(&format!("Evermore could not start.\n\n{error}"));
                     tauri::Error::Anyhow(anyhow::anyhow!(error))
                 })?;
                 if let Some(state) = app.try_state::<BackendProcess>() {
@@ -251,7 +246,7 @@ fn run() -> tauri::Result<()> {
 
 fn main() {
     if let Err(error) = run() {
-        eprintln!("Failed to start Love Museum: {error}");
+        eprintln!("Failed to start Evermore: {error}");
         std::process::exit(1);
     }
 }

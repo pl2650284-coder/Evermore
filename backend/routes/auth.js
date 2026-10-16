@@ -4,6 +4,40 @@ const { pool } = require('../db/connection');
 const { generateToken, hashPassword, comparePassword, generateId } = require('../utils');
 const { authenticate } = require('../middleware/auth');
 
+// 桌面版使用透明本机会话。保留用户 ID 仅用于关联现有业务数据，
+// 不再要求用户创建或输入登录凭据。
+router.post('/local', async (req, res) => {
+  try {
+    const [users] = await pool.query(
+      'SELECT users.id, users.email, users.name, users.avatar_url ' +
+      'FROM users LEFT JOIN couples ON couples.user_id = users.id ' +
+      'ORDER BY CASE WHEN couples.id IS NULL THEN 1 ELSE 0 END, users.created_at ASC LIMIT 1'
+    );
+
+    let user = users[0];
+    if (!user) {
+      const userId = generateId();
+      const email = 'local@love-museum.local';
+      const name = '本机用户';
+      const password = await hashPassword(generateId());
+
+      await pool.query(
+        'INSERT INTO users (id, email, password, name) VALUES (?, ?, ?, ?)',
+        [userId, email, password, name]
+      );
+      user = { id: userId, email, name, avatar_url: null };
+    }
+
+    res.json({
+      token: generateToken({ id: user.id, email: user.email, name: user.name }),
+      user,
+    });
+  } catch (error) {
+    console.error('Local session error:', error);
+    res.status(500).json({ error: '初始化本机会话失败' });
+  }
+});
+
 // 用户注册
 router.post('/register', async (req, res) => {
   try {

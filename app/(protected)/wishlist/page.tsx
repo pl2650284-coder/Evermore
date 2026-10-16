@@ -14,7 +14,6 @@ import {
   Upload,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import Section from '@/components/Section';
 import { useWishlist } from '@/lib/data';
 import { uploadFile } from '@/lib/storage';
 
@@ -148,19 +147,19 @@ export default function WishlistPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="pt-24 pb-12">
-        <Section>
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-12">
+      <div className="page-shell">
+        <main className="page-container">
+          <div>
+            <div className="page-header">
               <div>
-                <h1 className="text-4xl sm:text-5xl font-bold mb-4">愿望清单</h1>
-                <p className="text-gray-600 dark:text-gray-400">
+                <h1 className="page-title">愿望清单</h1>
+                <p className="page-description">
                   {completedCount}/{totalCount} 已完成
                 </p>
               </div>
               <button
                 onClick={handleAdd}
-                className="flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full hover:opacity-90 transition-opacity"
+                className="button-primary"
               >
                 <Plus className="w-5 h-5" />
                 添加愿望
@@ -269,7 +268,7 @@ export default function WishlistPage() {
               </div>
             )}
           </div>
-        </Section>
+        </main>
       </div>
 
       {/* Add/Edit Modal */}
@@ -291,7 +290,7 @@ export default function WishlistPage() {
             >
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">
+                  <h2 className="section-title">
                     {editingItem ? '编辑愿望' : '添加新愿望'}
                   </h2>
                   <button

@@ -16,6 +16,7 @@ import {
   Photo,
   TimeCapsule,
   Achievement,
+  AchievementInput,
   Letter,
   Gift,
   Ticket,
@@ -220,27 +221,47 @@ export function useAchievements() {
   const { couple } = useCouple();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchAchievements = async () => {
-    if (!couple) { setLoading(false); return; }
+    if (!couple) { setAchievements([]); setLoading(false); return; }
     setLoading(true);
+    setError(null);
     try {
       const result = await achievementsApi.getAchievements();
       setAchievements(result.achievements || []);
-    } catch (e) { console.error(e); }
+    } catch (e) { setError(e instanceof Error ? e.message : '获取成就失败'); }
     finally { setLoading(false); }
   };
 
-  const unlockAchievement = async (title: string) => {
-    if (!couple) throw new Error('No couple');
-    const result = await achievementsApi.unlockAchievement(title);
+  const addAchievement = async (data: AchievementInput) => {
+    const result = await achievementsApi.createAchievement(data);
     setAchievements(prev => [result.achievement, ...prev]);
     return result.achievement;
   };
 
-  // 简化版 - 只返回基本成就数据
+  const updateAchievement = async (id: string, data: Partial<AchievementInput> & { unlocked?: boolean }) => {
+    const result = await achievementsApi.updateAchievement(id, data);
+    setAchievements(prev => prev.map(item => item.id === id ? result.achievement : item));
+    return result.achievement;
+  };
+
+  const deleteAchievement = async (id: string) => {
+    await achievementsApi.deleteAchievement(id);
+    setAchievements(prev => prev.filter(item => item.id !== id));
+  };
+
+  const unlockAchievement = async (title: string) => {
+    if (!couple) throw new Error('No couple');
+    const template = ACHIEVEMENT_TEMPLATES.find(item => item.title === title);
+    if (!template) throw new Error('未找到成就模板');
+    const result = await achievementsApi.unlockAchievement({ ...template, achievement_type: template.id });
+    setAchievements(prev => [result.achievement, ...prev]);
+    return result.achievement;
+  };
+
   const achievementsWithStatus = ACHIEVEMENT_TEMPLATES.map(template => {
-    const unlocked = (achievements || []).find(a => a.title === template.title);
+    const unlocked = achievements.find(a => !a.is_custom && (a.achievement_type === template.id || a.title === template.title));
     return {
       ...template,
       unlocked: !!unlocked,
@@ -252,7 +273,11 @@ export function useAchievements() {
 
   useEffect(() => { fetchAchievements(); }, [couple]);
 
-  return { achievements, loading, unlockAchievement, checkAndUnlockAchievements: async () => {}, achievementsWithStatus, refresh: fetchAchievements };
+  return {
+    achievements, loading, error, addAchievement, updateAchievement, deleteAchievement,
+    unlockAchievement, checkAndUnlockAchievements: async () => {}, achievementsWithStatus,
+    customAchievements: achievements.filter(item => item.is_custom), refresh: fetchAchievements,
+  };
 }
 
 // ========== 信件馆 ==========

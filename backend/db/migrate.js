@@ -114,6 +114,8 @@ const schema = `
     achievement_type TEXT NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
+    icon TEXT NOT NULL DEFAULT '🏆',
+    is_custom INTEGER NOT NULL DEFAULT 0,
     unlocked_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (couple_id) REFERENCES couples(id) ON DELETE CASCADE
   );
@@ -193,6 +195,14 @@ async function migrate() {
   const database = getDatabase();
   database.exec(schema);
 
+  const achievementColumns = database.prepare('PRAGMA table_info(achievements)').all();
+  if (!achievementColumns.some((column) => column.name === 'icon')) {
+    database.exec("ALTER TABLE achievements ADD COLUMN icon TEXT NOT NULL DEFAULT '🏆'");
+  }
+  if (!achievementColumns.some((column) => column.name === 'is_custom')) {
+    database.exec('ALTER TABLE achievements ADD COLUMN is_custom INTEGER NOT NULL DEFAULT 0');
+  }
+
   for (const table of tablesWithUpdatedAt) {
     database.exec(`
       CREATE TRIGGER IF NOT EXISTS ${table}_set_updated_at
@@ -217,7 +227,7 @@ async function migrate() {
     );
   }
 
-  database.exec('PRAGMA user_version = 1');
+  database.exec('PRAGMA user_version = 2');
   console.log(`SQLite migration complete: ${getDatabasePath()}`);
 }
 

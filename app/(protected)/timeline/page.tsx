@@ -4,7 +4,6 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Plus, Edit2, Trash2, X, Upload, CheckCircle, AlertCircle, Loader2, Search, ChevronDown, ChevronRight, RotateCcw } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import Section from '@/components/Section';
 import { useTimelineEvents, PROVINCES, getCitiesByProvince, getDistrictsByCity } from '@/lib/data';
 import { uploadFile } from '@/lib/storage';
 
@@ -408,15 +407,15 @@ export default function TimelinePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-24 pb-12">
-        <Section>
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-12">
+      <div className="page-shell">
+        <main className="page-container">
+          <div>
+            <div className="page-header">
               <div>
-                <h1 className="text-4xl sm:text-5xl font-bold mb-4">恋爱时间轴</h1>
-                <p className="text-gray-600 dark:text-gray-400">记录我们的每一个重要时刻</p>
+                <h1 className="page-title">恋爱时间轴</h1>
+                <p className="page-description">记录我们的每一个重要时刻</p>
               </div>
-              <button onClick={handleAddEvent} className="flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full hover:opacity-90 transition-opacity">
+              <button onClick={handleAddEvent} className="button-primary">
                 <Plus className="w-5 h-5" />
                 添加新回忆
               </button>
@@ -636,7 +635,7 @@ export default function TimelinePage() {
               </>
             )}
           </div>
-        </Section>
+        </main>
       </div>
 
       <AnimatePresence>
@@ -657,7 +656,7 @@ export default function TimelinePage() {
             >
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">{editingEvent ? '编辑回忆' : '添加新回忆'}</h2>
+                  <h2 className="section-title">{editingEvent ? '编辑回忆' : '添加新回忆'}</h2>
                   <button onClick={handleCloseModal} disabled={isSavingRef.current} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors disabled:opacity-50">
                     <X className="w-5 h-5" />
                   </button>

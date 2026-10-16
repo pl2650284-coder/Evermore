@@ -9,7 +9,7 @@ test('desktop API stores memories and uploads in SQLite data directory', async (
   const frontendDirectory = path.join(dataDirectory, 'frontend');
   const uploadDirectory = path.join(dataDirectory, 'uploads');
   fs.mkdirSync(frontendDirectory);
-  fs.writeFileSync(path.join(frontendDirectory, 'index.html'), '<h1>Love Museum</h1>');
+  fs.writeFileSync(path.join(frontendDirectory, 'index.html'), '<h1>Evermore</h1>');
   fs.writeFileSync(path.join(frontendDirectory, '404.html'), '<h1>Not found</h1>');
   fs.mkdirSync(path.join(frontendDirectory, 'login'));
   fs.writeFileSync(path.join(frontendDirectory, 'login', 'index.html'), '<h1>Login</h1>');
@@ -17,6 +17,7 @@ test('desktop API stores memories and uploads in SQLite data directory', async (
   process.env.DB_PATH = path.join(dataDirectory, 'love-museum.sqlite');
   process.env.UPLOAD_DIR = uploadDirectory;
   process.env.JWT_SECRET = 'only-for-desktop-api-test';
+  process.env.ENABLE_S3_SYNC = 'true';
 
   const { startServer } = require('../server');
   const { closeDatabase, getDatabase } = require('../db/connection');
@@ -47,7 +48,7 @@ test('desktop API stores memories and uploads in SQLite data directory', async (
 
   const home = await fetch(url);
   assert.equal(home.status, 200);
-  assert.match(await home.text(), /Love Museum/);
+  assert.match(await home.text(), /Evermore/);
 
   const loginPage = await fetch(`${url}/login/`);
   assert.equal(loginPage.status, 200);
@@ -57,6 +58,24 @@ test('desktop API stores memories and uploads in SQLite data directory', async (
     headers: { Origin: 'https://example.invalid' },
   });
   assert.equal(forbidden.status, 403);
+  const bootstrapSyncConfiguration = await request('/api/sync/s3/config');
+  assert.equal(bootstrapSyncConfiguration.configuration, null);
+  await expectStatus('/api/sync/s3/config', 403, {
+    headers: { Origin: 'https://example.invalid' },
+  });
+  await expectStatus('/api/sync/run', 403, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ direction: 'upload' }),
+  });
+
+  const localSession = await request('/api/auth/local', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  assert.equal(localSession.user.email, 'local@love-museum.local');
+  assert.ok(localSession.token);
 
   const registered = await request('/api/auth/register', {
     method: 'POST',
@@ -67,6 +86,10 @@ test('desktop API stores memories and uploads in SQLite data directory', async (
     Authorization: `Bearer ${registered.token}`,
     'Content-Type': 'application/json',
   };
+
+  await expectStatus('/api/sync/s3/config', 401);
+  const syncConfiguration = await request('/api/sync/s3/config', { headers });
+  assert.equal(syncConfiguration.configuration, null);
 
   const loggedIn = await request('/api/auth/login', {
     method: 'POST',
@@ -85,6 +108,13 @@ test('desktop API stores memories and uploads in SQLite data directory', async (
     }),
   });
 
+  const resumedLocalSession = await request('/api/auth/local', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  assert.equal(resumedLocalSession.user.id, registered.user.id);
+
   const updatedCouple = await request(`/api/couple/${couple.couple.id}`, {
     method: 'PUT',
     headers,
@@ -98,7 +128,14 @@ test('desktop API stores memories and uploads in SQLite data directory', async (
   const createdEvent = await request('/api/timeline/events', {
     method: 'POST',
     headers,
-    body: JSON.stringify({ title: 'A day together', event_date: '2026-09-21' }),
+    body: JSON.stringify({
+      title: 'A day together',
+      event_date: '2026-09-21',
+      location: '陕西省 西安市 雁塔区',
+      province: '陕西省',
+      city: '西安市',
+      district: '雁塔区',
+    }),
   });
 
   await request(`/api/timeline/events/${createdEvent.event.id}`, {
@@ -143,9 +180,36 @@ test('desktop API stores memories and uploads in SQLite data directory', async (
     headers,
     body: JSON.stringify({ url: upload.url, title: 'Our photo' }),
   });
+  getDatabase().prepare(
+    `UPDATE photos
+     SET created_at = ?, taken_at = ?, province = ?, city = ?, district = ?
+     WHERE id = ?`
+  ).run('2026-09-22 10:00:00', '2026-09-22', '陕西省', '西安市', '雁塔区', photo.photo.id);
   const photos = await request('/api/photos', { headers });
   assert.equal(photos.photos.length, 1);
   assert.equal(photos.photos[0].url, upload.url);
+
+  const annualReport = await request('/api/report/annual?year=2026', { headers });
+  assert.deepEqual(annualReport.report.summary, {
+    placeCount: 1,
+    provinceCount: 1,
+    cityCount: 1,
+    photoCount: 1,
+    eventCount: 1,
+    activeDays: 2,
+    activeMonths: 1,
+  });
+  assert.equal(annualReport.report.monthly[8].eventCount, 1);
+  assert.equal(annualReport.report.monthly[8].photoCount, 1);
+  assert.equal(annualReport.report.busiestMonth.month, 9);
+  assert.deepEqual(annualReport.report.topLocations[0], {
+    label: '陕西省 · 西安市 · 雁塔区',
+    total: 2,
+    eventCount: 1,
+    photoCount: 1,
+  });
+  assert.ok(annualReport.report.availableYears.includes(2026));
+  await expectStatus('/api/report/annual?year=invalid', 400, { headers });
 
   await request('/api/photos/tags', {
     method: 'POST',
@@ -244,10 +308,10 @@ test('desktop API stores memories and uploads in SQLite data directory', async (
   const adminStats = await request('/api/admin/stats', {
     headers: { Authorization: `Bearer ${adminLogin.token}` },
   });
-  assert.equal(adminStats.stats.userCount, 1);
+  assert.equal(adminStats.stats.userCount, 2);
 
   const database = getDatabase();
-  assert.equal(database.prepare('SELECT COUNT(*) AS count FROM users').get().count, 1);
+  assert.equal(database.prepare('SELECT COUNT(*) AS count FROM users').get().count, 2);
   assert.equal(database.prepare('SELECT COUNT(*) AS count FROM couples').get().count, 1);
   assert.equal(database.prepare('SELECT COUNT(*) AS count FROM timeline_events').get().count, 1);
   assert.equal(database.prepare('SELECT COUNT(*) AS count FROM photos').get().count, 1);

@@ -12,6 +12,7 @@ const frontendDirectory = path.resolve(
 fs.mkdirSync(dataDirectory, { recursive: true });
 const uploadDirectory = path.join(dataDirectory, 'uploads');
 fs.mkdirSync(uploadDirectory, { recursive: true });
+process.env.ENABLE_S3_SYNC = 'true';
 
 function getJwtSecret() {
   const secretPath = path.join(dataDirectory, 'secret.key');
@@ -53,7 +54,7 @@ async function main() {
   });
 
   server = started.server;
-  console.log(`Love Museum local API running at ${started.url}`);
+  console.log(`Evermore local API running at ${started.url}`);
 }
 
 process.once('SIGINT', async () => {
@@ -66,7 +67,7 @@ process.once('SIGTERM', async () => {
 });
 
 main().catch(async (error) => {
-  console.error('Failed to start Love Museum local API:', error);
+  console.error('Failed to start Evermore local API:', error);
   await stop();
   process.exitCode = 1;
 });

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Plus, Edit2, Trash2, X, Upload, Calendar, MapPin, Tag } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import Section from '@/components/Section';
 import { useTickets } from '@/lib/data';
 import { uploadFile } from '@/lib/storage';
 
@@ -144,20 +143,20 @@ export default function TicketsPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="pt-24 pb-12">
-        <Section>
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-12">
+      <div className="page-shell">
+        <main className="page-container">
+          <div>
+            <div className="page-header">
               <div>
                 <Link href="/memorial" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-2 inline-block">
                   ← 返回纪念馆
                 </Link>
-                <h1 className="text-4xl font-bold">门票馆</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">保存每一张票据</p>
+                <h1 className="page-title">门票馆</h1>
+                <p className="page-description">保存每一张票据</p>
               </div>
               <button
                 onClick={handleAdd}
-                className="flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full hover:opacity-90 transition-opacity"
+                className="button-primary"
               >
                 <Plus className="w-5 h-5" />
                 添加票据
@@ -242,7 +241,7 @@ export default function TicketsPage() {
               </div>
             )}
           </div>
-        </Section>
+        </main>
       </div>
 
       <AnimatePresence>
@@ -263,7 +262,7 @@ export default function TicketsPage() {
             >
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">
+                  <h2 className="section-title">
                     {editingTicket ? '编辑票据' : '添加票据'}
                   </h2>
                   <button

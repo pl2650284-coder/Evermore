@@ -4,7 +4,6 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Plus, Lock, Unlock, X, Calendar, Edit2, Trash2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import Section from '@/components/Section';
 import { useTimeCapsules } from '@/lib/data';
 
 export default function CapsulesPage() {
@@ -113,21 +112,21 @@ export default function CapsulesPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="pt-24 pb-12">
-        <Section>
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-12">
+      <div className="page-shell">
+        <main className="page-container">
+          <div>
+            <div className="page-header">
               <div>
-                <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl font-bold">
+                <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="page-title">
                   时光胶囊
                 </motion.h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">
+                <p className="page-description">
                   给未来的自己写一封信
                 </p>
               </div>
               <button
                 onClick={handleAdd}
-                className="flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full hover:opacity-90 transition-opacity"
+                className="button-primary"
               >
                 <Plus className="w-5 h-5" />
                 新建胶囊
@@ -212,7 +211,7 @@ export default function CapsulesPage() {
               </div>
             )}
           </div>
-        </Section>
+        </main>
       </div>
 
       {/* 查看胶囊弹窗 */}
@@ -234,7 +233,7 @@ export default function CapsulesPage() {
             >
               <div className="p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">{viewingCapsule.title}</h2>
+                  <h2 className="section-title">{viewingCapsule.title}</h2>
                   <button
                     onClick={() => setViewingCapsule(null)}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
@@ -285,7 +284,7 @@ export default function CapsulesPage() {
             >
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">
+                  <h2 className="section-title">
                     {editingCapsule ? '编辑胶囊' : '新建时光胶囊'}
                   </h2>
                   <button

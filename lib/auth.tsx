@@ -1,8 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import { authApi, AuthResponse } from './api';
+import { authApi } from './api';
 
 interface User {
   id: string;
@@ -15,9 +14,7 @@ interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
   adminLogin: (username: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -27,44 +24,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
-  // 初始化时检查本地存储的登录态
+  const establishLocalSession = async () => {
+    const result = await authApi.getLocalSession();
+    localStorage.setItem('token', result.token);
+    localStorage.setItem('user', JSON.stringify(result.user));
+    localStorage.setItem('isAdmin', 'false');
+    setUser(result.user);
+    setIsAdmin(false);
+  };
+
+  // 管理员会话保持原有行为；普通使用始终静默初始化本机会话。
   useEffect(() => {
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     const savedIsAdmin = localStorage.getItem('isAdmin');
 
-    if (token && savedUser) {
+    if (token && savedUser && savedIsAdmin === 'true') {
       try {
         setUser(JSON.parse(savedUser));
-        setIsAdmin(savedIsAdmin === 'true');
+        setIsAdmin(true);
+        setIsLoading(false);
+        return;
       } catch (e) {
-        console.error('解析用户信息失败:', e);
+        console.error('解析管理员信息失败:', e);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('isAdmin');
       }
     }
-    setIsLoading(false);
+
+    establishLocalSession()
+      .catch((error) => console.error('初始化本机会话失败:', error))
+      .finally(() => setIsLoading(false));
   }, []);
-
-  // 用户登录
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const result = await authApi.login({ email, password });
-
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('user', JSON.stringify(result.user));
-      localStorage.setItem('isAdmin', 'false');
-
-      setUser(result.user);
-      setIsAdmin(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // 管理员登录
   const adminLogin = async (username: string, password: string) => {
@@ -93,23 +86,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 注册
-  const register = async (email: string, password: string, name: string) => {
-    setIsLoading(true);
-    try {
-      const result = await authApi.register({ email, password, name });
-
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('user', JSON.stringify(result.user));
-      localStorage.setItem('isAdmin', 'false');
-
-      setUser(result.user);
-      setIsAdmin(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // 登出
   const logout = () => {
     localStorage.removeItem('token');
@@ -117,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('isAdmin');
     setUser(null);
     setIsAdmin(false);
-    router.push('/login');
+    establishLocalSession().catch((error) => console.error('恢复本机会话失败:', error));
   };
 
   return (
@@ -126,9 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAdmin,
         isLoading,
-        login,
         adminLogin,
-        register,
         logout,
       }}
     >

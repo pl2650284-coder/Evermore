@@ -1,5 +1,5 @@
 {
-  "name": "love-museum",
+  "name": "evermore",
   "version": "1.0.0",
   "description": "A private desktop space for shared memories",
   "private": true,
@@ -9,13 +9,16 @@
     "start": "next start",
     "lint": "next lint",
     "build:desktop": "node scripts/build-desktop.js",
-    "desktop": "tauri dev",
-    "tauri:dev": "tauri dev",
+    "desktop": "node scripts/desktop.js",
+    "tauri:dev": "node scripts/desktop.js",
     "tauri:build": "tauri build",
-    "test:desktop-api": "node --test backend/test/sqlite.test.js",
-    "dist:win": "tauri build --target x86_64-pc-windows-msvc --bundles nsis"
+    "test:desktop-api": "node --test backend/test/*.test.js",
+    "dist:win": "node scripts/tauri-build-windows.js"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.12.3",
+    "@tauri-apps/plugin-dialog": "^2.8.2",
+    "@tauri-apps/plugin-updater": "^2.13.3",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -25,6 +28,7 @@
   },
   "devDependencies": {
     "@supabase/supabase-js": "^2.45.4",
+    "@tauri-apps/cli": "^2.12.0",
     "@types/node": "^22.7.5",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
@@ -41,9 +45,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.3.0",
-    "tailwindcss": "^3.4.14",
     "tailwind-merge": "^2.5.4",
-    "typescript": "^5.6.3",
-    "@tauri-apps/cli": "^2.12.0"
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3"
   }
 }

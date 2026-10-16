@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { Archive, Mail, Gift, Ticket, Clock, Sparkles, Calendar, Building2, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-import Section from '@/components/Section';
 
 export default function MemorialPage() {
   const modules = [
@@ -18,34 +17,30 @@ export default function MemorialPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="pt-24 pb-12">
-        <Section>
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="inline-block mb-6"
-              >
-                <div className="p-6 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full">
-                  <Archive className="w-12 h-12 text-accent" />
-                </div>
-              </motion.div>
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-4xl sm:text-5xl font-bold mb-4"
-              >
-                纪念馆
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
-              >
-                收藏我们共同的回忆，每一件物品都有它的故事
-              </motion.p>
+      <div className="page-shell">
+        <main className="page-container">
+          <div>
+            <div className="page-header">
+              <div>
+                <motion.h1
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="page-title"
+                >
+                  纪念馆
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="page-description"
+                >
+                  收藏我们共同的回忆，每一件物品都有它的故事
+                </motion.p>
+              </div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-accent dark:bg-orange-950/30">
+                <Archive className="h-7 w-7" />
+              </div>
             </div>
 
             {/* Modules Grid */}
@@ -64,7 +59,7 @@ export default function MemorialPage() {
                         <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform duration-300`}>
                           <module.icon className="w-8 h-8" />
                         </div>
-                        <h3 className="text-2xl font-bold mb-2">{module.label}</h3>
+                        <h3 className="section-title mb-2">{module.label}</h3>
                         <p className="text-gray-600 dark:text-gray-400 mb-4">
                           {module.description}
                         </p>
@@ -79,7 +74,7 @@ export default function MemorialPage() {
               ))}
             </div>
           </div>
-        </Section>
+        </main>
       </div>
     </div>
   );

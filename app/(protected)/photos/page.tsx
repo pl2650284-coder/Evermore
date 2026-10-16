@@ -9,7 +9,6 @@ import {
   ChevronDown, PlusCircle, Upload
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import Section from '@/components/Section';
 import {
   usePhotos, useTags,
   PROVINCES, getCitiesByProvince, getDistrictsByCity,
@@ -327,18 +326,18 @@ export default function PhotosPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="pt-24 pb-12">
-        <Section>
-          <div className="max-w-7xl mx-auto">
+      <div className="page-shell">
+        <main className="page-container">
+          <div>
             {/* 头部 */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="page-header">
               <div>
-                <h1 className="text-4xl font-bold mb-2">照片博物馆</h1>
-                <p className="text-gray-600 dark:text-gray-400">收藏我们的每一个美好瞬间</p>
+                <h1 className="page-title">照片博物馆</h1>
+                <p className="page-description">收藏我们的每一个美好瞬间</p>
               </div>
               <button
                 onClick={handleAdd}
-                className="flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full hover:opacity-90 transition-opacity"
+                className="button-primary"
               >
                 <Plus className="w-5 h-5" />
                 上传照片
@@ -724,7 +723,7 @@ export default function PhotosPage() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: monthIndex * 0.1 }}
                       >
-                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                        <h2 className="section-title mb-4 flex items-center gap-2">
                           <Calendar className="w-6 h-6 text-accent" />
                           {month}
                           <span className="text-sm text-gray-400 font-normal">({monthPhotos.length} 张)</span>
@@ -769,7 +768,7 @@ export default function PhotosPage() {
               </>
             )}
           </div>
-        </Section>
+        </main>
       </div>
 
       {/* 查看照片弹窗 */}
@@ -835,7 +834,7 @@ export default function PhotosPage() {
               {/* 信息面板 */}
               <div className="lg:w-80 text-white space-y-6">
                 {filteredPhotos[viewingPhotoIndex].title && (
-                  <h2 className="text-2xl font-bold">{filteredPhotos[viewingPhotoIndex].title}</h2>
+                  <h2 className="section-title">{filteredPhotos[viewingPhotoIndex].title}</h2>
                 )}
 
                 {/* 基本信息 */}
@@ -931,7 +930,7 @@ export default function PhotosPage() {
             >
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">上传照片</h2>
+                  <h2 className="section-title">上传照片</h2>
                   <button
                     onClick={() => setIsModalOpen(false)}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"

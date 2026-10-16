@@ -3,9 +3,12 @@ import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/lib/auth';
 import { CoupleProvider } from '@/lib/couple';
+import SyncScheduler from '@/components/SyncScheduler';
+import { MusicProvider } from '@/components/MusicProvider';
+import SoundButton from '@/components/SoundButton';
 
 export const metadata: Metadata = {
-  title: 'Love Museum - 恋爱数字博物馆',
+  title: 'Evermore - 恋爱数字博物馆',
   description: '记录我们的恋爱故事，收藏每一个珍贵瞬间',
 };
 
@@ -20,7 +23,11 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <CoupleProvider>
-              {children}
+              <MusicProvider>
+                {children}
+                <SoundButton />
+                <SyncScheduler />
+              </MusicProvider>
             </CoupleProvider>
           </AuthProvider>
         </ThemeProvider>

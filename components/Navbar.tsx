@@ -11,11 +11,9 @@ import {
   Sun,
   ChevronDown,
   Heart,
-  LogOut,
-  User,
+  Settings,
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
-import { useAuth } from '@/lib/auth';
 import { useCouple } from '@/lib/couple';
 import { cn } from '@/lib/utils';
 
@@ -43,14 +41,11 @@ const dataDropdownItems = [
 
 // 年度报告
 const reportNavItem = { href: '/report', label: '年度报告' };
-
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { user, isAdmin, logout } = useAuth();
   const { couple } = useCouple();
   const pathname = usePathname();
   const isAdminPage = pathname.startsWith('/admin');
@@ -91,11 +86,6 @@ export default function Navbar() {
     setOpenDropdown(openDropdown === name ? null : name);
   };
 
-  const handleLogout = () => {
-    logout();
-    setShowUserMenu(false);
-  };
-
   return (
     <nav
       className={cn(
@@ -105,7 +95,7 @@ export default function Navbar() {
           : 'bg-background/0 backdrop-blur-none'
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="page-container">
         <div className="flex items-center justify-between h-[72px]">
           {/* Logo 区域 */}
           <Link href="/" className="flex flex-col items-start">
@@ -116,7 +106,7 @@ export default function Navbar() {
               </span>
             </div>
             <span className="text-xs text-gray-500 dark:text-gray-400 tracking-wide">
-              Love Museum
+              Evermore
             </span>
           </Link>
 
@@ -169,60 +159,18 @@ export default function Navbar() {
               )}
             </button>
 
-            {/* 用户菜单 */}
-            {!user && (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/login"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-accent transition-colors"
-                >
-                  登录
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-4 py-2 text-sm font-medium bg-accent text-white rounded-full hover:bg-accent/90 transition-colors"
-                >
-                  注册
-                </Link>
-              </div>
-            )}
-
-            {user && (
-              <div className="relative">
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <div className="w-8 h-8 bg-gradient-to-br from-accent to-orange-400 rounded-full flex items-center justify-center text-white">
-                    <User className="w-4 h-4" />
-                  </div>
-                </button>
-
-                <AnimatePresence>
-                  {showUserMenu && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      className="absolute right-0 top-full pt-2"
-                    >
-                      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-2 min-w-[200px]">
-                        <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800 mb-1">
-                          <p className="text-sm font-medium">{user.email}</p>
-                        </div>
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          退出登录
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
+            <Link
+              href="/settings"
+              aria-label="设置"
+              className={cn(
+                'p-2 rounded-full transition-colors',
+                isActive('/settings')
+                  ? 'bg-gray-100 dark:bg-gray-800 text-accent'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+              )}
+            >
+              <Settings className="w-5 h-5" />
+            </Link>
 
             {/* 移动端菜单按钮 */}
             <button
@@ -304,38 +252,15 @@ export default function Navbar() {
                 </MobileNavLink>
               </div>
 
-              {/* 用户操作 */}
-              {!user && (
-                <div className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-2">
-                  <Link
-                    href="/login"
-                    className="block w-full px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    登录
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="block w-full px-4 py-3 text-center font-medium bg-accent text-white rounded-xl hover:bg-accent/90 transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    注册
-                  </Link>
-                </div>
-              )}
-
-              {/* 用户登出 */}
-              {user && (
-                <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    退出登录
-                  </button>
-                </div>
-              )}
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+                <MobileNavLink
+                  href="/settings"
+                  active={isActive('/settings')}
+                  onClick={() => setIsOpen(false)}
+                >
+                  设置
+                </MobileNavLink>
+              </div>
             </div>
           </motion.div>
         )}

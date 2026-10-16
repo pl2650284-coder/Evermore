@@ -9,9 +9,14 @@
 
 # testing
 /coverage
+/.tmp-edge-profile/
 
 # next.js
 /.next/
+/.next-tauri-dev/
+/.next-tauri-build/
+/.tauri-updater.config.json
+/release-updates/
 /out/
 
 # production

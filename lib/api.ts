@@ -5,6 +5,7 @@ type AllowNull<T> = {
 
 // API 基础配置
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+const REQUEST_TIMEOUT_MS = 15_000;
 
 // 请求拦截器类型
 interface RequestOptions extends RequestInit {
@@ -29,6 +30,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     const response = await fetch(url, {
       ...options,
       headers,
+      signal: options.signal || AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 
     if (!response.ok) {
@@ -112,6 +114,7 @@ export interface AuthResponse {
 }
 
 export const authApi = {
+  getLocalSession: () => api.post<AuthResponse>('/auth/local', {}),
   login: (data: LoginRequest) => api.post<AuthResponse>('/auth/login', data),
   register: (data: RegisterRequest) => api.post<AuthResponse>('/auth/register', data),
   logout: () => api.post('/auth/logout', {}),
@@ -222,6 +225,45 @@ export const photosApi = {
   createTag: (name: string) => api.post<{ tag: Tag }>('/photos/tags', { name }),
 };
 
+// ==================== 年度报告 API ====================
+
+export interface AnnualReportMonth {
+  month: number;
+  label: string;
+  eventCount: number;
+  photoCount: number;
+  total: number;
+}
+
+export interface AnnualReportLocation {
+  label: string;
+  total: number;
+  eventCount: number;
+  photoCount: number;
+}
+
+export interface AnnualReport {
+  year: number;
+  availableYears: number[];
+  summary: {
+    placeCount: number;
+    provinceCount: number;
+    cityCount: number;
+    photoCount: number;
+    eventCount: number;
+    activeDays: number;
+    activeMonths: number;
+  };
+  monthly: AnnualReportMonth[];
+  topLocations: AnnualReportLocation[];
+  busiestMonth: AnnualReportMonth | null;
+}
+
+export const reportApi = {
+  getAnnual: (year: number) =>
+    api.get<{ report: AnnualReport }>(`/report/annual?year=${year}`),
+};
+
 // ==================== 愿望清单 API ====================
 
 export interface WishlistItem {
@@ -271,16 +313,29 @@ export const capsulesApi = {
 export interface Achievement {
   id: string;
   couple_id: string;
+  achievement_type: string;
   title: string;
-  description?: string;
+  description: string | null;
+  icon: string;
+  is_custom: boolean;
+  unlocked_at: string | null;
+}
+
+export interface AchievementInput {
+  title: string;
+  description?: string | null;
   icon?: string;
-  unlocked_at?: string;
-  created_at: string;
 }
 
 export const achievementsApi = {
   getAchievements: () => api.get<{ achievements: Achievement[] }>('/achievements'),
-  unlockAchievement: (title: string) => api.post<{ achievement: Achievement }>('/achievements/unlock', { title }),
+  createAchievement: (data: AchievementInput) =>
+    api.post<{ achievement: Achievement }>('/achievements', data),
+  updateAchievement: (id: string, data: Partial<AchievementInput> & { unlocked?: boolean }) =>
+    api.put<{ achievement: Achievement }>(`/achievements/${id}`, data),
+  deleteAchievement: (id: string) => api.delete(`/achievements/${id}`),
+  unlockAchievement: (data: AchievementInput & { achievement_type: string }) =>
+    api.post<{ achievement: Achievement }>('/achievements/unlock', data),
 };
 
 // ==================== 信件 API ====================
@@ -351,4 +406,74 @@ export const ticketsApi = {
   updateTicket: (id: string, data: AllowNull<Partial<Ticket>>) =>
     api.put<{ ticket: Ticket }>(`/tickets/${id}`, data),
   deleteTicket: (id: string) => api.delete(`/tickets/${id}`),
+};
+
+// ==================== 对象存储同步 API ====================
+
+export interface S3SyncConfiguration {
+  endpoint: string;
+  region: string;
+  bucket: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+}
+
+export interface S3SyncPublicConfiguration {
+  endpoint: string;
+  region: string;
+  bucket: string;
+  accessKeyIdHint: string;
+}
+
+export type SyncState =
+  | 'unconfigured'
+  | 'remote-empty'
+  | 'upload-needed'
+  | 'download-needed'
+  | 'conflict'
+  | 'synced';
+
+export interface SyncStatus {
+  state: SyncState;
+  local: {
+    isEmpty: boolean;
+    fileCount: number;
+    totalBytes: number;
+  } | null;
+  remote: {
+    revision: string;
+    createdAt: string;
+    fileCount: number;
+    totalBytes: number;
+  } | null;
+  lastSyncedAt: string | null;
+}
+
+export interface SyncRunResult {
+  direction: 'upload' | 'download' | 'none';
+  revision?: string;
+  lastSyncedAt: string | null;
+  recoveryCreated?: boolean;
+}
+
+export const syncApi = {
+  getConfiguration: () =>
+    api.get<{ configuration: S3SyncPublicConfiguration | null }>('/sync/s3/config'),
+  saveConfiguration: (configuration: S3SyncConfiguration) =>
+    api.put<{ configuration: S3SyncPublicConfiguration }>('/sync/s3/config', configuration),
+  getStatus: () => api.get<SyncStatus>('/sync/status'),
+  run: (direction: 'auto' | 'upload' | 'download' = 'auto') =>
+    api.post<SyncRunResult>('/sync/run', { direction }),
+};
+
+export interface MediaCacheStatus {
+  limitBytes: number;
+  usedBytes: number;
+  fileCount: number;
+}
+
+export const mediaCacheApi = {
+  getStatus: () => api.get<MediaCacheStatus>('/media/cache/settings'),
+  setLimit: (limitBytes: number) =>
+    api.put<MediaCacheStatus>('/media/cache/settings', { limitBytes }),
 };

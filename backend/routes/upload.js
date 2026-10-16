@@ -1,83 +1,74 @@
 const express = require('express');
-const router = express.Router();
+const fs = require('node:fs');
+const path = require('node:path');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const { authenticate } = require('../middleware/auth');
+const { createMediaStore } = require('../storage/media-store');
 
-// 确保上传目录存在
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+const router = express.Router();
+const uploadDirectory = process.env.UPLOAD_DIR || './uploads';
+const mediaStore = createMediaStore();
 
-// 配置 multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  }
-});
-
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|webm/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    return cb(null, true);
-  }
-  cb(new Error('只支持图片和视频文件'));
-};
+fs.mkdirSync(uploadDirectory, { recursive: true });
 
 const upload = multer({
-  storage,
-  fileFilter,
+  storage: multer.diskStorage({
+    destination: (req, file, callback) => callback(null, uploadDirectory),
+    filename: (req, file, callback) => {
+      const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}${path.extname(file.originalname)}`;
+      callback(null, uniqueName);
+    },
+  }),
+  fileFilter: (req, file, callback) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|webm/;
+    const validExtension = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const validMimeType = allowedTypes.test(file.mimetype);
+    if (!validExtension || !validMimeType) {
+      return callback(new Error('只支持图片和视频文件'));
+    }
+    return callback(null, true);
+  },
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 50 * 1024 * 1024 // 默认 50MB
-  }
+    fileSize: Number(process.env.MAX_FILE_SIZE) || 50 * 1024 * 1024,
+  },
 });
 
-// 上传文件
-router.post('/', authenticate, upload.single('file'), (req, res) => {
+router.post('/', authenticate, upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: '没有上传文件' });
+  }
+
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: '没有上传文件' });
-    }
+    const cloudMedia = await mediaStore.upload(req.file);
+    const url = cloudMedia?.url || `/uploads/${req.file.filename}`;
+    if (cloudMedia) fs.rmSync(req.file.path, { force: true });
 
-    // 使用相对地址，桌面应用每次启动时可以安全使用随机端口
-    const fileUrl = `/uploads/${req.file.filename}`;
-
-    res.json({
-      url: fileUrl,
+    return res.json({
+      url,
       filename: req.file.filename,
       originalName: req.file.originalname,
       size: req.file.size,
-      mimetype: req.file.mimetype
+      mimetype: req.file.mimetype,
+      storage: cloudMedia ? 'object' : 'local',
     });
   } catch (error) {
+    fs.rmSync(req.file.path, { force: true });
     console.error('Upload error:', error);
-    res.status(500).json({ error: '上传失败' });
+    return res.status(502).json({ error: '上传到对象存储失败，本地临时文件已清理' });
   }
 });
 
-// 上传错误处理
-router.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
+router.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ error: '文件大小超过限制' });
     }
-    return res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: error.message });
   }
-  
-  if (err.message === '只支持图片和视频文件') {
-    return res.status(400).json({ error: err.message });
+  if (error.message === '只支持图片和视频文件') {
+    return res.status(400).json({ error: error.message });
   }
-  
-  next(err);
+  return next(error);
 });
 
 module.exports = router;

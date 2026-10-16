@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { Heart, Calendar, MapPin, Camera } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import ParticleBackground from '@/components/ParticleBackground';
-import SoundButton from '@/components/SoundButton';
 import Section from '@/components/Section';
 import { useCouple } from '@/lib/couple';
 import { calculateDaysTogether } from '@/lib/utils';
@@ -121,10 +120,9 @@ export default function Home() {
         <p className="flex items-center justify-center gap-2">
           Made with <Heart className="w-4 h-4 text-accent" fill="currentColor" />
         </p>
-        <p className="mt-2 text-sm">© {new Date().getFullYear()} Love Museum. Forever together.</p>
+        <p className="mt-2 text-sm">© {new Date().getFullYear()} Evermore. Forever together.</p>
       </footer>
 
-      <SoundButton />
     </div>
   );
 }

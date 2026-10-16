@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Plus, Edit2, Trash2, X, Upload, Calendar, PenLine } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import Section from '@/components/Section';
 import { useLetters } from '@/lib/data';
 import { uploadFile } from '@/lib/storage';
 import { useCouple } from '@/lib/couple';
@@ -143,20 +142,20 @@ export default function LettersPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="pt-24 pb-12">
-        <Section>
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-12">
+      <div className="page-shell">
+        <main className="page-container">
+          <div>
+            <div className="page-header">
               <div>
                 <Link href="/memorial" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-2 inline-block">
                   ← 返回纪念馆
                 </Link>
-                <h1 className="text-4xl font-bold">信件馆</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">收藏每一封情书和手写信</p>
+                <h1 className="page-title">信件馆</h1>
+                <p className="page-description">收藏每一封情书和手写信</p>
               </div>
               <button
                 onClick={handleAdd}
-                className="flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full hover:opacity-90 transition-opacity"
+                className="button-primary"
               >
                 <Plus className="w-5 h-5" />
                 写一封信
@@ -235,7 +234,7 @@ export default function LettersPage() {
               </div>
             )}
           </div>
-        </Section>
+        </main>
       </div>
 
       {/* 查看信件弹窗 */}
@@ -266,7 +265,7 @@ export default function LettersPage() {
               )}
               <div className="p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">{viewingLetter.title}</h2>
+                  <h2 className="section-title">{viewingLetter.title}</h2>
                   <button
                     onClick={() => setViewingLetter(null)}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
@@ -323,7 +322,7 @@ export default function LettersPage() {
             >
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">
+                  <h2 className="section-title">
                     {editingLetter ? '编辑信' : '写一封信'}
                   </h2>
                   <button

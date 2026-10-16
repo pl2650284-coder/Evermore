@@ -43,7 +43,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-gray-900 dark:text-white">Love Museum</h1>
+              <h1 className="font-bold text-gray-900 dark:text-white">Evermore</h1>
               <p className="text-xs text-gray-500">管理后台</p>
             </div>
           </div>
